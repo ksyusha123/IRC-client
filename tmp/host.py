@@ -1,20 +1,14 @@
 import socket
 
 
-def host():
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.bind(('127.0.0.1', 9090))
-    client = []  # Массив где храним адреса клиентов
-    print('Start Server')
-    while 1:
-        data, addres = sock.recvfrom(1024)
-        print(addres[0], addres[1])
-        if addres not in client:
-            client.append(addres)  # Если такого клиента нету , то добавить
-        for clients in client:
-            if clients == addres:
-                continue  # Не отправлять данные клиенту, который их прислал
-            sock.sendto(data, clients)
-
-
-host()
+sock = socket.socket()
+sock.bind(('', 9090))
+sock.listen(1)
+conn, addr = sock.accept()
+while True:
+    print(1)
+    data = conn.recv(1024)
+    if not data:
+        break
+    conn.send(data.upper())
+conn.close()
