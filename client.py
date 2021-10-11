@@ -1,37 +1,34 @@
 import socket
 import threading
 
+nickname = input("Choose your nickname: ")
+
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-host = input('IP-адрес сервера: ')
-name = input('Nickname: ')
-port = 9090
-client.connect((host, port))
-print('-' * 5 + f"Подключился к серверу {host}" + '-' * 5)
-print('-' * 5 + 'Enter, чтобы закрыть соединение с сервером' + '-' * 5)
-
-
-def send():
-    while True:
-        message = input('Me: ')
-        if message == 'enter':
-            break
-        client.send(f'{name}: {message}'.encode('utf-8'))
+client.connect(('127.0.0.1', 55555))
 
 
 def receive():
     while True:
-        message = client.recv(1024)
-        print(message.decode('utf-8'))
+        try:
+            message = client.recv(1024).decode('ascii')
+            if message == 'NICK':
+                client.send(nickname.encode('ascii'))
+            else:
+                print(message)
+        except:
+            print("An error occured!")
+            client.close()
+            break
 
 
-input_thread = threading.Thread(target=receive, name='input')
-output_thread = threading.Thread(target=send, name='out')
+def write():
+    while True:
+        message = '{}: {}'.format(nickname, input(''))
+        client.send(message.encode('ascii'))
 
-input_thread.start()
-output_thread.start()
 
-input_thread.join()
-output_thread.join()
+receive_thread = threading.Thread(target=receive)
+receive_thread.start()
 
-print('-' * 5 + 'сервер отключен' + '-' * 5)
-client.close()
+write_thread = threading.Thread(target=write)
+write_thread.start()
