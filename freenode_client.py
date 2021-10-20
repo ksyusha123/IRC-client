@@ -36,7 +36,7 @@ class IRCClient:
         return self.conn.recv(512).decode("utf-8")
 
     def send_cmd(self, cmd, message):
-        command = "{} {}\r\n".format(cmd, message).encode("utf-8")
+        command = f"{cmd} {message}\r\n".encode("utf-8")
         self.conn.send(command)
 
     def send_message_to_channel(self, message):
@@ -75,13 +75,15 @@ class IRCClient:
         cmd = input(f"<{self.username}> ").strip()
         while cmd != "/quit":
             self.send_message_to_channel(cmd)
-            time.sleep(1)
+            cmd = input(f"<{self.username}> ").strip()
         self.send_cmd("QUIT", "Good bye!")
 
     def receive(self):
         resp = self.get_response()
         while resp:
             msg = resp.strip().split(":")
+            if len(msg) < 3:
+                continue
             print(f"<{msg[1].split('!')[0]}> {msg[2].strip()}")
 
 
