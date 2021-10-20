@@ -85,6 +85,7 @@ class IRCClient:
             if len(msg) < 3:
                 continue
             print(f"<{msg[1].split('!')[0]}> {msg[2].strip()}")
+            resp = self.get_response()
 
 
 @click.command()
