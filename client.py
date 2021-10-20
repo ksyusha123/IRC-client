@@ -1,49 +1,89 @@
 import socket
 import threading
-import re
-import os
+import click
 
 
-class Client:
-    def __init__(self):
-        print('Enter your nick name (of a-z, A-Z, 0-9 symbols)')
-        self.nickname = input("My nickname: ")
-        nick_reg = re.compile(r'[a-zA-Z0-9]{1,9}')
-        f = nick_reg.match(self.nickname) is None
-        while f:
-            print('Nickname is invalid, enter another')
-            self.nickname = input("My nickname: ")
-            f = nick_reg.match(self.nickname) is None
-
-        print('Enter server\'s ip-address')
-        self.server_ip = input('Server ip: ')
-        print('Enter port')
-        self.port = int(input('Port: '))
-        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.client.connect((self.server_ip, self.port))
-        self.client_host_name = socket.gethostname()
-        self.client_username = os.environ.get('USERNAME')
-
+class IRCClient:
+    def __init__(self, username, channel, server="irc.libera.chat", port=6667):
+        self.username = username
+        self.server = server
+        self.port = port
+        self.channel = channel
+        self.conn = None
+        self.connect()
+        self.try_to_join_channel()
+        write_thread = threading.Thread(target=self.process_commands)
         receive_thread = threading.Thread(target=self.receive)
+        write_thread.start()
         receive_thread.start()
 
-        write_thread = threading.Thread(target=self.write)
-        write_thread.start()
+    def connect(self):
+        self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.conn.connect((self.server, self.port))
+
+    def get_response(self):
+        return self.conn.recv(512).decode("utf-8")
+
+    def send_cmd(self, cmd, message):
+        command = f"{cmd} {message}\r\n".encode("utf-8")
+        self.conn.send(command)
+
+    def send_message_to_channel(self, message):
+        command = "PRIVMSG {}".format(self.channel)
+        message = ":" + message
+        self.send_cmd(command, message)
+
+    def join_channel(self):
+        cmd = "JOIN"
+        channel = self.channel
+        self.send_cmd(cmd, channel)
+
+    def send_nick(self):
+        self.send_cmd("NICK", self.username)
+        self.send_cmd(
+            "USER", f"{self.username} * * :{self.username}")
+
+    def try_to_join_channel(self):
+        joined = False
+        while not joined:
+            resp = self.get_response()
+            print(resp.strip())
+            if "No Ident response" in resp:
+                self.send_nick()
+            if "376" in resp:
+                self.join_channel()
+            if "433" in resp:
+                self.username = f"_{self.username}"
+                self.send_nick()
+            if "PING" in resp:
+                self.send_cmd("PONG", ":" + resp.split(":")[1])
+            if "366" in resp:
+                joined = True
+
+    def process_commands(self):
+        while True:
+            cmd = input(f"<{self.username}> ").strip()
+            if cmd == "/quit":
+                self.send_cmd("QUIT", "Good bye!")
+                # self.conn.close()
+                break
+            self.send_message_to_channel(cmd)
 
     def receive(self):
         while True:
-            try:
-                message = self.client.recv(1024).decode('ascii')
-                if message == 'NICK':
-                    self.client.send(self.nickname.encode('ascii'))
-                else:
-                    print(message)
-            except:
-                print("An error occured!")
-                self.client.close()
-                break
+            resp = self.get_response()
+            msg = resp.strip().split(":")
+            if len(msg) < 3:
+                continue
+            print(f"<{msg[1].split('!')[0]}> {msg[2].strip()}")
 
-    def write(self):
-        while True:
-            message = '{}: {}'.format(self.nickname, input(''))
-            self.client.send(message.encode('ascii'))
+
+@click.command()
+@click.argument('username')
+@click.argument('channel')
+def main(username, channel):
+    client = IRCClient(username, channel)
+
+
+if __name__ == "__main__":
+    main()
