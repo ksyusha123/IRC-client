@@ -2,6 +2,7 @@ import socket
 import threading
 import sys
 import click
+import time
 
 
 # def channel(channel):
@@ -22,12 +23,10 @@ class IRCClient:
         self.conn = None
         self.connect()
         self.try_to_join_channel()
-
-        receive_thread = threading.Thread(target=self.receive)
-        receive_thread.start()
-
         write_thread = threading.Thread(target=self.process_commands)
+        receive_thread = threading.Thread(target=self.receive)
         write_thread.start()
+        receive_thread.start()
 
     def connect(self):
         self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -76,6 +75,7 @@ class IRCClient:
         cmd = input(f"<{self.username}> ").strip()
         while cmd != "/quit":
             self.send_message_to_channel(cmd)
+            time.sleep(1)
         self.send_cmd("QUIT", "Good bye!")
 
     def receive(self):
@@ -90,8 +90,6 @@ class IRCClient:
 @click.argument('channel')
 def main(username, channel):
     client = IRCClient(username, channel)
-
-
     # while (cmd != "/quit"):
     #     cmd = input("< {}> ".format(username)).strip()
     #     if cmd == "/quit":
