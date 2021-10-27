@@ -75,15 +75,18 @@ class IRCClient:
             msg = resp.strip().split(":")
             if len(msg) < 3:
                 continue
-            print(f"<{msg[1].split('!')[0]}> {msg[2].strip()}")
+            yield f"<{msg[1].split('!')[0]}> {msg[2].strip()}"
+
+    def close(self):
+        self.send_cmd("QUIT", "Good bye!")
 
 
-@click.command()
-@click.argument('username')
-@click.argument('channel')
-def main(username, channel):
-    client = IRCClient(username, channel)
-
-
-if __name__ == "__main__":
-    main()
+# @click.command()
+# @click.argument('username')
+# @click.argument('channel')
+# def main(username, channel):
+#     client = IRCClient(username, channel)
+#
+#
+# if __name__ == "__main__":
+#     main()
