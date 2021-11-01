@@ -1,6 +1,5 @@
 import socket
 import threading
-import click
 
 
 class IRCClient:
@@ -79,14 +78,3 @@ class IRCClient:
 
     def close(self):
         self.send_cmd("QUIT", "Good bye!")
-
-
-# @click.command()
-# @click.argument('username')
-# @click.argument('channel')
-# def main(username, channel):
-#     client = IRCClient(username, channel)
-#
-#
-# if __name__ == "__main__":
-#     main()
