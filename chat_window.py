@@ -17,6 +17,7 @@ class ChatWindow(QWidget):
         grid.addWidget(messages_label, 1, 2)
         grid.addWidget(self.output_window, 2, 1, 2, 3)
         self.input_window = QTextEdit()
+        self.input_window.setFocus()
         self.enter_button = QPushButton('Enter')
         self.enter_button.clicked.connect(self.send_data)
         grid.addWidget(self.input_window, 4, 1, 4, 2)
@@ -36,5 +37,3 @@ class ChatWindow(QWidget):
     def show_data(self):
         for received_message in self.client.receive():
             self.output_window.insertPlainText(f"{received_message}\n")
-
-
