@@ -1,6 +1,11 @@
-from authorization_window import AuthorizeWindow
+import sys
+from PyQt5.QtWidgets import QApplication
+
+from authorization_window import AuthorizationWindow
 
 
 if __name__ == '__main__':
-    auth = AuthorizeWindow()
-    auth.mainloop()
+    app = QApplication(sys.argv)
+    a = AuthorizationWindow()
+
+    sys.exit(app.exec_())
