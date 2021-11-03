@@ -7,66 +7,82 @@ class IRCClient:
         self.username = username
         self.server = server
         self.port = port
-        self.channel = '#python_task'
+        self.channel = ''
         self.conn = None
         self.connect()
-        self.try_to_join_channel()
-        write_thread = threading.Thread(target=self.process_commands)
+        # self.try_to_join_channel()
+        # write_thread = threading.Thread(target=self.process_commands)
         receive_thread = threading.Thread(target=self.receive)
-        write_thread.start()
+        # write_thread.start()
         receive_thread.start()
 
     def connect(self):
         self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.conn.connect((self.server, self.port))
+        self.send_nick()
+        while True:
+            resp = self.get_response()
+            if "433" in resp:
+                self.username = f"_{self.username}"
+                self.send_nick()
+            if "001" in resp:
+                break
 
     def get_response(self):
         return self.conn.recv(512).decode("utf-8")
 
-    def send_cmd(self, cmd, message):
-        command = f"{cmd} {message}\r\n".encode("utf-8")
-        self.conn.send(command)
+    def send_cmd(self, cmd, arg):
+        self.conn.send(f"{cmd} {arg}\r\n".encode("utf-8"))
 
-    def send_message_to_channel(self, message):
-        command = "PRIVMSG {}".format(self.channel)
-        message = ":" + message
-        self.send_cmd(command, message)
+    def process_commands(self, cmd):
+        if cmd.startswith('/'):
+            command, arg = cmd.split()
+            if command == '/join':
+                self.channel = arg
+            self.send_cmd(cmd.upper().replace('/', ''), arg)
+        else:
+            self.send_cmd("PRIVMSG", f"{self.channel} :{cmd}")
 
-    def join_channel(self):
-        cmd = "JOIN"
-        channel = self.channel
-        self.send_cmd(cmd, channel)
+    # def send_message_to_channel(self, message):
+    #     command = "PRIVMSG {}".format(self.channel)
+    #     message = ":" + message
+    #     self.send_cmd(command, message)
+    #
+    # def join_channel(self):
+    #     cmd = "JOIN"
+    #     channel = self.channel
+    #     self.send_cmd(cmd, channel)
 
     def send_nick(self):
         self.send_cmd("NICK", self.username)
         self.send_cmd(
             "USER", f"{self.username} * * :{self.username}")
 
-    def try_to_join_channel(self):
-        joined = False
-        while not joined:
-            resp = self.get_response()
-            print(resp.strip())
-            if "No Ident response" in resp:
-                self.send_nick()
-            if "376" in resp:
-                self.join_channel()
-            if "433" in resp:
-                self.username = f"_{self.username}"
-                self.send_nick()
-            if "PING" in resp:
-                self.send_cmd("PONG", ":" + resp.split(":")[1])
-            if "366" in resp:
-                joined = True
+    # def try_to_join_channel(self):
+    #     joined = False
+    #     while not joined:
+    #         resp = self.get_response()
+    #         print(resp.strip())
+    #         if "No Ident response" in resp:
+    #             self.send_nick()
+    #         if "376" in resp:
+    #             self.join_channel()
+    #         if "433" in resp:
+    #             self.username = f"_{self.username}"
+    #             self.send_nick()
+    #         if "PING" in resp:
+    #             self.send_cmd("PONG", ":" + resp.split(":")[1])
+    #         if "366" in resp:
+    #             joined = True
 
-    def process_commands(self):
-        while True:
-            cmd = input(f"<{self.username}> ").strip()
-            if cmd == "/quit":
-                self.send_cmd("QUIT", "Good bye!")
-                # self.conn.close()
-                break
-            self.send_message_to_channel(cmd)
+    # def process_commands(self):
+    #     while True:
+    #         cmd = input(f"<{self.username}> ").strip()
+            # if cmd == "/quit":
+            #     self.send_cmd("QUIT", "Good bye!")
+            #     # self.conn.close()
+            #     break
+            # self.send_message_to_channel(cmd)
 
     def receive(self):
         while True:

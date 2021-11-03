@@ -1,3 +1,5 @@
+import threading
+
 from PyQt5.QtWidgets import QWidget, QGridLayout, QLabel, QTextEdit, \
     QPushButton
 
@@ -27,7 +29,7 @@ class ChatWindow(QWidget):
 
     def send_data(self):
         cmd = self.input_window.toPlainText()
-        self.client.send_message_to_channel(cmd)
+        self.client.process_commands(cmd)
         self.output_window.insertPlainText(f"<ME> {cmd}\n")
         self.input_window.clear()
 
