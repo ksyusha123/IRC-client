@@ -1,7 +1,14 @@
 import threading
-
+import re
+import requests
 from PyQt5.QtWidgets import QWidget, QLabel, QTextEdit, \
     QPushButton, QLineEdit, QVBoxLayout, QHBoxLayout
+from PyQt5.QtGui import QTextCursor
+
+from link_parser import get_opengraph_tags
+
+
+link_regex = re.compile(r'^((https)|(http)|(fttp))')
 
 
 class ChatWindow(QWidget):
@@ -41,11 +48,17 @@ class ChatWindow(QWidget):
 
     def create_output_field(self):
         output_field = QTextEdit()
+        output_field.setOpenExternalLinks(True)
         output_field.setReadOnly(True)
         return output_field
 
     def send_data(self):
         cmd = self.input_field.text()
+        if re.search(link_regex, cmd):
+            og_tags = get_opengraph_tags(cmd)
+            self.output_field.insertPlainText(f"{og_tags['site_name']}\n")
+            self.output_field.insertPlainText(f"{og_tags['title']}\n")
+            self.show_image(og_tags["site_name"], og_tags["image"])
         self.client.process_commands(cmd)
         self.output_field.insertPlainText(f"<ME> {cmd}\n")
         self.input_field.clear()
@@ -53,3 +66,16 @@ class ChatWindow(QWidget):
     def show_data(self):
         for received_message in self.client.receive():
             self.output_field.insertPlainText(f"{received_message}\n")
+
+    def show_image(self, name, image):
+        save_image(image, name)
+        document = self.output_field.document()
+        cursor = QTextCursor(document)
+        cursor.movePosition(QTextCursor.End)
+        cursor.insertImage('tmp.jpg')
+
+
+def save_image(link, name):
+    image_data = requests.get(link).content
+    with open('tmp.jpg', 'wb') as f:
+        f.write(image_data)
