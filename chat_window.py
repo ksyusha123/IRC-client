@@ -66,6 +66,12 @@ class ChatWindow(QWidget):
 
     def show_data(self):
         for received_message in self.client.receive():
+            if re.search(link_regex, received_message):
+                og_tags = get_opengraph_tags(received_message)
+                if og_tags is not None:
+                    self.output_field.insertPlainText(f"{og_tags['site_name']}\n")
+                    self.output_field.insertPlainText(f"{og_tags['title']}\n")
+                    self.show_image(og_tags["site_name"], og_tags["image"])
             self.output_field.insertPlainText(f"{received_message}\n")
 
     def show_image(self, name, image):

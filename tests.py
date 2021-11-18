@@ -11,7 +11,7 @@ class TestClient(TestCase):
     @patch('client.IRCClient.send_cmd')
     def test_send_command(self, obj):
         test_client.process_commands('/join #test_room')
-        obj.assert_called_once_with('JOIN', '#test_room')
+        obj.assert_called_once_with('JOIN #TEST_ROOM', '#test_room')
 
     @patch('client.IRCClient.send_cmd')
     def test_send_empty_message(self, obj):
