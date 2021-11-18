@@ -1,5 +1,5 @@
 import urllib.request
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 import re
 
 
@@ -11,6 +11,8 @@ def get_opengraph_tags(link):
         with urllib.request.urlopen(link) as f:
             data = f.read().decode('utf-8')
     except HTTPError:
+        return None
+    except URLError:
         return None
     opengraph_tags = {}
     og_tags = re.findall(opengraph_tag_pattern, data)
