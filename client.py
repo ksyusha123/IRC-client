@@ -36,7 +36,7 @@ class IRCClient:
             command, arg = cmd.split()
             if command == '/join':
                 self.channel = arg
-            self.send_cmd(command.upper().replace('/', ''), arg)
+            self.send_cmd(cmd.upper().replace('/', ''), arg)
         else:
             self.send_cmd("PRIVMSG", f"{self.channel} :{cmd}")
 
