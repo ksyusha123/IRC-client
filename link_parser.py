@@ -6,6 +6,8 @@ opengraph_tag_pattern = re.compile(r'(og:\w*)"\s(content=\".*?\")')
 
 
 def get_opengraph_tags(link):
+    if link is None or link == '':
+        raise TypeError
     with urllib.request.urlopen(link) as f:
         data = f.read().decode('utf-8')
     opengraph_tags = {}
@@ -13,5 +15,7 @@ def get_opengraph_tags(link):
     for tag in og_tags:
         tag_type = tag[0].split(':')[1]
         tag_content = tag[1].split('="')[-1]
+        if tag_content[-1] == '"':
+            tag_content = tag_content[:-1]
         opengraph_tags[tag_type] = tag_content
     return opengraph_tags

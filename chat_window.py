@@ -48,7 +48,6 @@ class ChatWindow(QWidget):
 
     def create_output_field(self):
         output_field = QTextEdit()
-        output_field.setOpenExternalLinks(True)
         output_field.setReadOnly(True)
         return output_field
 
