@@ -1,19 +1,20 @@
 import threading
 import re
-import requests
 from PyQt5.QtWidgets import QWidget, QLabel, QTextEdit, \
     QPushButton, QLineEdit, QVBoxLayout, QHBoxLayout
 from PyQt5.QtGui import QTextCursor
 
 from link_parser import get_opengraph_tags
+from file_saver import save_image, resize_image
 
 
-link_regex = re.compile(r'^((https)|(http)|(fttp))')
+link_regex = re.compile(r'^((https)|(http)|(ftp))')
 
 
 class ChatWindow(QWidget):
     def __init__(self, client):
         super(ChatWindow, self).__init__()
+        self.setGeometry(200, 100, 1000, 500)
         self.client = client
         self.output_field = self.create_output_field()
         self.input_field = self.create_input_field()
@@ -53,13 +54,14 @@ class ChatWindow(QWidget):
 
     def send_data(self):
         cmd = self.input_field.text()
-        if re.search(link_regex, cmd):
-            og_tags = get_opengraph_tags(cmd)
-            self.output_field.insertPlainText(f"{og_tags['site_name']}\n")
-            self.output_field.insertPlainText(f"{og_tags['title']}\n")
-            self.show_image(og_tags["site_name"], og_tags["image"])
         self.client.process_commands(cmd)
         self.output_field.insertPlainText(f"<ME> {cmd}\n")
+        if re.search(link_regex, cmd):
+            og_tags = get_opengraph_tags(cmd)
+            if og_tags is not None:
+                self.output_field.insertPlainText(f"{og_tags['site_name']}\n")
+                self.output_field.insertPlainText(f"{og_tags['title']}\n")
+                self.show_image(og_tags["site_name"], og_tags["image"])
         self.input_field.clear()
 
     def show_data(self):
@@ -68,13 +70,8 @@ class ChatWindow(QWidget):
 
     def show_image(self, name, image):
         save_image(image, name)
+        resize_image(name, self.width() // 2, self.height() // 2)
         document = self.output_field.document()
         cursor = QTextCursor(document)
         cursor.movePosition(QTextCursor.End)
-        cursor.insertImage('tmp.jpg')
-
-
-def save_image(link, name):
-    image_data = requests.get(link).content
-    with open('tmp.jpg', 'wb') as f:
-        f.write(image_data)
+        cursor.insertImage(f'{name}.jpg')

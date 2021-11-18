@@ -9,7 +9,6 @@ class AuthorizationWindow(QWidget):
     def __init__(self):
         super(AuthorizationWindow, self).__init__()
         self.setWindowTitle('Authorization')
-        # self.setGeometry(300, 300, 310, 200)
 
         grid = QGridLayout()
         self.setLayout(grid)

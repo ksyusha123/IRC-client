@@ -1,15 +1,17 @@
 import urllib.request
+from urllib.error import HTTPError
 import re
 
 
-opengraph_tag_pattern = re.compile(r'(og:\w*)"\s(content=\".*?\")')
+opengraph_tag_pattern = re.compile(r'(og:\w*)".*?(content=\".*?\")')
 
 
 def get_opengraph_tags(link):
-    if link is None or link == '':
-        raise TypeError
-    with urllib.request.urlopen(link) as f:
-        data = f.read().decode('utf-8')
+    try:
+        with urllib.request.urlopen(link) as f:
+            data = f.read().decode('utf-8')
+    except HTTPError:
+        return None
     opengraph_tags = {}
     og_tags = re.findall(opengraph_tag_pattern, data)
     for tag in og_tags:
