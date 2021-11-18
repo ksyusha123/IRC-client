@@ -1,5 +1,9 @@
 import socket
 import threading
+import re
+
+
+link_regex = re.compile(r'^((https)|(http)|(ftp))')
 
 
 class IRCClient:
@@ -48,10 +52,19 @@ class IRCClient:
     def receive(self):
         while True:
             resp = self.get_response()
+            print(resp)
             msg = resp.strip().split(":")
             if len(msg) < 3:
                 continue
-            yield f"<{msg[1].split('!')[0]}> {msg[2].strip()}"
+            second_part, message = self.parse_message(resp)
+            yield f"<{second_part.split('!')[0]}> {message}"
+
+    def parse_message(self, message):
+        first_part = message[:message.find(':')]
+        message = message[message.find(":")+1:]
+        second_part = message[:message.find(':')]
+        message = message[message.find(":") + 1:]
+        return second_part, message
 
     def close(self):
         self.send_cmd("QUIT", "Good bye!")
