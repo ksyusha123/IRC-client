@@ -78,7 +78,7 @@ class ChatWindow(QWidget):
             if 'title' in og_tags:
                 self.output_field.insertPlainText(
                     f"{og_tags['title']}\n")
-            if 'image' in og_tags:
+            if 'site_name' in og_tags and 'image' in og_tags:
                 self.show_image(og_tags["site_name"], og_tags["image"])
 
     def show_image(self, name, image):
