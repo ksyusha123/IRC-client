@@ -1,5 +1,5 @@
 import requests
-from PIL import Image
+from PIL import Image, ImageFile
 
 
 def save_image(link, name):
@@ -9,6 +9,7 @@ def save_image(link, name):
 
 
 def resize_image(name, width, height):
+    ImageFile.LOAD_TRUNCATED_IMAGES = True
     image = Image.open(f"{name}.jpg")
     image.thumbnail((width, height))
     image.convert("RGB").save(f"{name}.jpg")
