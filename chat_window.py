@@ -65,9 +65,9 @@ class ChatWindow(QWidget):
     def show_data(self):
         for received_message in self.client.receive():
             link = re.search(link_regex, received_message)
+            self.output_field.insertPlainText(f"{received_message}\n")
             if link:
                 self.show_og_tags(link)
-            self.output_field.insertPlainText(f"{received_message}\n")
 
     def show_og_tags(self, link):
         og_tags = get_opengraph_tags(link.group(0))
