@@ -56,22 +56,28 @@ class ChatWindow(QWidget):
         cmd = self.input_field.text()
         self.client.process_commands(cmd)
         self.output_field.insertPlainText(f"<ME> {cmd}\n")
-        if re.search(link_regex, cmd):
+        if re.search(link_regex, cmd) and ' ' not in cmd:
             og_tags = get_opengraph_tags(cmd)
             if og_tags is not None:
-                self.output_field.insertPlainText(f"{og_tags['site_name']}\n")
-                self.output_field.insertPlainText(f"{og_tags['title']}\n")
-                self.show_image(og_tags["site_name"], og_tags["image"])
+                if 'site_name' in og_tags:
+                    self.output_field.insertPlainText(f"{og_tags['site_name']}\n")
+                if 'title' in og_tags:
+                    self.output_field.insertPlainText(f"{og_tags['title']}\n")
+                if 'site_name' in og_tags and 'image' in og_tags:
+                    self.show_image(og_tags["site_name"], og_tags["image"])
         self.input_field.clear()
 
     def show_data(self):
         for received_message in self.client.receive():
-            if re.search(link_regex, received_message):
+            if re.search(link_regex, received_message) and ' ' not in cmd:
                 og_tags = get_opengraph_tags(received_message)
                 if og_tags is not None:
-                    self.output_field.insertPlainText(f"{og_tags['site_name']}\n")
-                    self.output_field.insertPlainText(f"{og_tags['title']}\n")
-                    self.show_image(og_tags["site_name"], og_tags["image"])
+                    if 'site_name' in og_tags:
+                        self.output_field.insertPlainText(f"{og_tags['site_name']}\n")
+                    if 'title' in og_tags:
+                        self.output_field.insertPlainText(f"{og_tags['title']}\n")
+                    if 'image' in og_tags and 'site_name' in og_tags:
+                        self.show_image(og_tags["site_name"], og_tags["image"])
             self.output_field.insertPlainText(f"{received_message}\n")
 
     def show_image(self, name, image):
@@ -80,4 +86,4 @@ class ChatWindow(QWidget):
         document = self.output_field.document()
         cursor = QTextCursor(document)
         cursor.movePosition(QTextCursor.End)
-        cursor.insertImage(f'{name}.jpg')
+        cursor.insertImage(f'.pictures/{name}.jpg')
