@@ -3,6 +3,7 @@ from zipfile import ZipFile
 import glob
 from pathlib import Path
 import shutil
+import click
 
 
 PATTERN = "*.py"
@@ -36,9 +37,13 @@ def delete_directory(directory):
     directory.rmdir()
 
 
-def make_zip_with_file_for_deploy(directory=Path('.'),
-                                  archive_path=Path('.')):
+@click.command()
+@click.argument("directory", required=False, default='.')
+@click.argument("archive_path", required=False, default='.')
+def make_zip_with_file_for_deploy(directory,
+                                  archive_path):
     directory = Path(directory)
+    archive_path = Path(archive_path)
     ignored_objects = get_ignored_objects(directory)
     py_files = set(directory.glob(PATTERN))
     tmp_folder = Path(directory / "for_deploy")
@@ -57,4 +62,5 @@ def make_zip_with_file_for_deploy(directory=Path('.'),
     delete_directory(tmp_folder)
 
 
-make_zip_with_file_for_deploy()
+if __name__ == '__main__':
+    make_zip_with_file_for_deploy()
