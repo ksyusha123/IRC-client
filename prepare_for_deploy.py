@@ -36,12 +36,12 @@ def delete_directory(directory):
     directory.rmdir()
 
 
-def make_zip_with_file_for_deploy(directory=Path.cwd(),
-                                  archive_path=Path.cwd()):
+def make_zip_with_file_for_deploy(directory=Path('.'),
+                                  archive_path=Path('.')):
     directory = Path(directory)
     ignored_objects = get_ignored_objects(directory)
     py_files = set(directory.glob(PATTERN))
-    tmp_folder = Path(directory / "tmp")
+    tmp_folder = Path(directory / "for_deploy")
     tmp_folder.mkdir()
     for obj in directory.iterdir():
         if obj in py_files:
