@@ -8,7 +8,7 @@ from link_parser import get_opengraph_tags
 from file_saver import save_image, resize_image
 
 
-link_regex = re.compile(r'((https)|(http)|(ftp)):\/{2}.*\/')
+link_regex = re.compile(r'^((https)|(http)|(ftp))')
 
 
 class ChatWindow(QWidget):
@@ -56,30 +56,23 @@ class ChatWindow(QWidget):
         cmd = self.input_field.text()
         self.client.process_commands(cmd)
         self.output_field.insertPlainText(f"<ME> {cmd}\n")
-
-        link = re.search(link_regex, cmd)
-        if link:
-            self.show_og_tags(link)
+        if re.search(link_regex, cmd):
+            og_tags = get_opengraph_tags(cmd)
+            if og_tags is not None:
+                self.output_field.insertPlainText(f"{og_tags['site_name']}\n")
+                self.output_field.insertPlainText(f"{og_tags['title']}\n")
+                self.show_image(og_tags["site_name"], og_tags["image"])
         self.input_field.clear()
 
     def show_data(self):
         for received_message in self.client.receive():
-            link = re.search(link_regex, received_message)
+            if re.search(link_regex, received_message):
+                og_tags = get_opengraph_tags(received_message)
+                if og_tags is not None:
+                    self.output_field.insertPlainText(f"{og_tags['site_name']}\n")
+                    self.output_field.insertPlainText(f"{og_tags['title']}\n")
+                    self.show_image(og_tags["site_name"], og_tags["image"])
             self.output_field.insertPlainText(f"{received_message}\n")
-            if link:
-                self.show_og_tags(link)
-
-    def show_og_tags(self, link):
-        og_tags = get_opengraph_tags(link.group(0))
-        if og_tags is not None:
-            if 'site_name' in og_tags:
-                self.output_field.insertPlainText(
-                    f"{og_tags['site_name']}\n")
-            if 'title' in og_tags:
-                self.output_field.insertPlainText(
-                    f"{og_tags['title']}\n")
-            if 'site_name' in og_tags and 'image' in og_tags:
-                self.show_image(og_tags["site_name"], og_tags["image"])
 
     def show_image(self, name, image):
         save_image(image, name)
