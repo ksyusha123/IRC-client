@@ -13,6 +13,10 @@ def save_image(link, name):
 
 
 def resize_image(name, width, height):
-    image = Image.open(f".pictures/{name}.jpg")
-    image.thumbnail((width, height))
-    image.convert("RGB").save(f".pictures/{name}.jpg")
+    try:
+        image = Image.open(f".pictures/{name}.jpg")
+        image.thumbnail((width, height))
+        image.convert("RGB").save(f".pictures/{name}.jpg")
+    except IOError:
+        return
+
